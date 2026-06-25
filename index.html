@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictor RSF - Cáncer de Mama</title>
+    <!-- Tailwind CSS para diseño responsivo moderno -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- Chart.js para graficar la curva de supervivencia -->
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <header class="bg-rose-600 text-white shadow-md p-4 mb-8">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-2xl font-bold">Predictor de Supervivencia - Random Survival Forest</h1>
+            <p class="text-sm text-rose-100 mt-1">Análisis clínico personalizado basado en variables oncológicas exactas</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow w-full">
+        
+        <!-- SECCIÓN DEL FORMULARIO -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-7">
+            <h2 class="text-lg font-semibold border-b border-slate-100 pb-3 mb-4 text-slate-700">Variables Clínicas y Patológicas</h2>
+            
+            <form id="survivalForm" class="space-y-4">
+                
+                <!-- Fila 1: Edad y Grado Nuclear -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1" for="Edad">Edad</label>
+                        <input type="number" id="Edad" name="Edad" required value="52" min="1" max="120" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1" for="grado_nuclear">Grado Nuclear</label>
+                        <select id="grado_nuclear" name="grado_nuclear" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="1">Grado 1</option>
+                            <option value="2" selected>Grado 2</option>
+                            <option value="3">Grado 3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Fila 2: Clasificación TNM -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1" for="t_clinica">t_clinica (T)</label>
+                        <select id="t_clinica" name="t_clinica" class="w-full px-3 py-2 border border-slate-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="1">T1</option>
+                            <option value="2" selected>T2</option>
+                            <option value="3">T3</option>
+                            <option value="4">T4</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1" for="n_clinica">n_clinica (N)</label>
+                        <select id="n_clinica" name="n_clinica" class="w-full px-3 py-2 border border-slate-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="0" selected>N0</option>
+                            <option value="1">N1</option>
+                            <option value="2">N2</option>
+                            <option value="3">N3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1" for="m_clinica">m_clinica (M)</label>
+                        <select id="m_clinica" name="m_clinica" class="w-full px-3 py-2 border border-slate-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="0" selected>M0</option>
+                            <option value="1">M1</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Fila 3: Etapa Clínica -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1" for="etapa_clinica">etapa_clinica</label>
+                    <select id="etapa_clinica" name="etapa_clinica" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                        <option value="1">Etapa I</option>
+                        <option value="2" selected>Etapa II</option>
+                        <option value="3">Etapa III</option>
+                        <option value="4">Etapa IV</option>
+                    </select>
+                </div>
+
+                <!-- Fila 4: Receptores y Marcadores Biológicos -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1" for="receptores_estrogenos">receptores_estrogenos</label>
+                        <select id="receptores_estrogenos" name="receptores_estrogenos" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="1" selected>Positivo (1)</option>
+                            <option value="0">Negativo (0)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1" for="receptores_progesterona">receptores_progesterona</label>
+                        <select id="receptores_progesterona" name="receptores_progesterona" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="1" selected>Positivo (1)</option>
+                            <option value="0">Negativo (0)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1" for="her2">her2</label>
+                        <select id="her2" name="her2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="0" selected>Negativo (0)</option>
+                            <option value="1">Positivo (1)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnCalcular" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-medium py-3 rounded-lg shadow transition duration-200 cursor-pointer mt-4">
+                    Calcular Curva de Supervivencia
+                </button>
+            </form>
+        </section>
+
+        <!-- SECCIÓN DE RESULTADOS Y GRÁFICO -->
+        <section class="flex flex-col gap-6 lg:col-span-5">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-semibold border-b border-slate-100 pb-3 mb-2 text-slate-700">Índice de Riesgo (Risk Score)</h2>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="riskScore" class="text-4xl font-extrabold text-slate-400">--</span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wider font-medium">unidades relativas</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex-grow relative min-h-[350px]">
+                <h2 class="text-lg font-semibold border-b border-slate-100 pb-3 mb-4 text-slate-700">Curva de Supervivencia Estimada</h2>
+                <div id="loading" class="hidden absolute inset-0 bg-white/90 flex flex-col items-center justify-center font-medium text-rose-600 z-10">
+                    <span class="animate-pulse mb-2">Calculando ensamblado de árboles...</span>
+                    <span class="text-xs text-slate-400">Enviando a la API</span>
+                </div>
+                <div id="placeholderText" class="text-slate-400 text-sm text-center my-16">
+                    Ajuste los valores clínicos a la izquierda y presione calcular para generar la proyección.
+                </div>
+                <canvas id="survivalChart" class="hidden max-h-80"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-100 text-slate-500 text-center text-xs p-4 mt-8 border-t border-slate-200">
+        API de Producción con FastAPI & Scikit-Survival (`sksurv`)
+    </footer>
+
+    <!-- LÓGICA DE CONTROL JAVASCRIPT CORREGIDA -->
+    <script>
+        // Ruta relativa automática para cuando FastAPI sirva el archivo en Render
+        const API_URL = "/predict"; 
+        
+        let chartInstance = null;
+
+        document.getElementById("survivalForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            document.getElementById("loading").classList.remove("hidden");
+            document.getElementById("placeholderText").classList.add("hidden");
+
+            // CORRECCIÓN CLAVE: Mapeo exacto con los nombres de variables de tu lista 'features' de Python
+            const payload = {
+                Edad: parseFloat(document.getElementById("Edad").value),
+                t_clinica: parseInt(document.getElementById("t_clinica").value),
+                n_clinica: parseInt(document.getElementById("n_clinica").value),
+                m_clinica: parseInt(document.getElementById("m_clinica").value),
+                etapa_clinica: parseInt(document.getElementById("etapa_clinica").value),
+                receptores_estrogenos: parseInt(document.getElementById("receptores_estrogenos").value),
+                receptores_progesterona: parseInt(document.getElementById("receptores_progesterona").value),
+                her2: parseInt(document.getElementById("her2").value),
+                grado_nuclear: parseInt(document.getElementById("grado_nuclear").value)};
+                try {
+                    const response = await fetch(API_URL, {method: "POST",headers: {"Content-Type": "application/json"},body: JSON.stringify(payload)});
+                    if (!response.ok) 
+                        throw new Error("Error en la respuesta de la API.");
+                    const result = await response.json();
+                    // Mostrar Score de Riesgo
+                    document.getElementById("riskScore").textContent = result.risk_score.toFixed(4);
+                    document.getElementById("riskScore").className = "text-4xl font-extrabold text-rose-600";
+                    // Mostrar y Actualizar Gráfica
+                    const ctx = document.getElementById("survivalChart");
+                    ctx.classList.remove("hidden");
+                    if (chartInstance) 
+                        chartInstance.destroy();
+                    chartInstance = new Chart(ctx, {type: 'line',data: {labels: result.timeline_tiempos,datasets: [{label: 'Probabilidad de Supervivencia',data: result.probabilidades_supervivencia,borderColor: 'rgb(225, 29, 72)',backgroundColor: 'rgba(225, 29, 72, 0.1)',borderWidth: 2.5,fill: true,tension: 0.1,pointRadius: 1}]},options: {responsive: true,maintainAspectRatio: false,scales: {x: { title: { display: true, text: 'Tiempo', font: { weight: 'bold' } } },y: { title: { display: true, text: 'Probabilidad', font: { weight: 'bold' } }, min: 0, max: 1 }}}});
+                } catch (error) {console.error("Error al procesar:", error);
+                    alert("Hubo un error al procesar la predicción. Revisa que el servidor de FastAPI en Render esté corriendo.");
+                } 
+                finally {document.getElementById("loading").classList.add("hidden");}});
